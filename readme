@@ -1,0 +1,46 @@
+1. 테스트 환경 : 파이썬 2.7.12
+2. 참조 모듈 :
+    - suds-0.4
+        - Centos : yum install python-suds
+        - ubuntu : apt-get install python-suds
+    - openssl
+        - Centos : yum install openssl
+        - ubuntu :
+3. conf설정
+    - isrunning : 현재 모듈의 실행 여부 (True : 실행중)
+    - url = arbor soap 접근 url
+    - username = arbor soap 접근 계정
+    - password = arbor soap 접근 패스워드
+
+    [alert list 조회(getDosAlertSummariesXML)] : getDosAlertSummariesXML 서비스의 파라메터 사용
+    - summaryfilter = 조회시 적용 필터
+    - summarycount = 조회시 조회 갯수
+
+    [alert id에 따른 상세 정보 조회(runXmlQuery)] : runXmlQuery의 파라메터 사용
+    - query_type = query 엘리먼트의 type attribute
+    - time_start = time 엘리먼트의 start_ascii attribute
+    - processing_type = processing 엘리먼트의 type attribute
+    - search_limit = search 엘리먼트의 limit attribute
+    - search_timeout = search 엘리먼트의 timeout attirbute
+    - filter_type = filter 엘리먼트의 type attribute
+
+    [파일 저장&삭제]
+    - savepath = 데이터 저장 경로
+    - saveprefix = 데이터 저장시 파일명 PREFIX
+    - deleteintervalday = 데이터 삭제시 삭제 주기(일)
+
+
+4. 비즈니스 로직
+    1) getDosAlertSummariesXml을 호출 하여 alert id와 ip를 리스트에 담는다.
+    2) 리스트 내 중복값은 제거 한다.
+    3) 리스트를 루핑 돌며 아래와 같은 작업을 수행한다.
+        3-1)runXmlQuery에 필요한 파라메터로 쓰일 XML String을 생성한다.
+        3-2)runXmlQuery를 수행한다.
+        3-3)runXmlQuery의 수행 결과 값 중 필요한 Row를 찾는다.
+        3-4)수행시점의 시간으로 파일에 insert or append 한다
+            3-4-1)파일명 : yyyyMMddHH + Prefix + .txt (2016121315_KINX.txt)
+            3-4-2)파일 Row중 시작시 "<" 와 종료시 "/>"는 제거한다.
+    4) 루핑이 종료 되면 파일을 정리 한다.
+        4-1) 저장경로에 있는 파일중 패턴에 맞는 파일 리스트를 조회한다 : "*_KINX.txt"
+        4-2) 리스트를 정렬한다.
+        4-3) 삭제 주기에 지정된 날짜를 넘기 전까지 반복 하며 삭제 한다.
